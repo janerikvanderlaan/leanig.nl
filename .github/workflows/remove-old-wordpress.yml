@@ -40,21 +40,25 @@ jobs:
           for i in $(seq 1 20); do warp-cli --accept-tos status | grep -q Connected && break; sleep 2; done
           warp-cli --accept-tos status
 
+      # lftp exits non-zero when any transfer fails, and the log is checked for errors too,
+      # so a partial download stops the run before anything is deleted.
       - name: Back up the WordPress folder
         timeout-minutes: 90
         run: |
           mkdir -p backup
-          lftp -u "$SFTP_USER","$SFTP_PASSWORD" "sftp://$HOST" -e "$LFTP_SETTINGS; mirror --parallel=8 --verbose=1 '$OLD_DIR' backup/WordPress_01; bye"
+          status=0
+          lftp -u "$SFTP_USER","$SFTP_PASSWORD" "sftp://$HOST" -e "$LFTP_SETTINGS; mirror --parallel=8 --verbose=1 '$OLD_DIR' backup/WordPress_01; bye" > mirror.log 2>&1 || status=$?
+          grep -v '^Transferring file' mirror.log || true
+          [ "$status" = 0 ] || { echo "::error::Download failed (lftp exit $status), nothing deleted"; exit 1; }
           du -sh backup
 
       - name: Check the backup is complete
-        timeout-minutes: 15
         run: |
-          lftp -u "$SFTP_USER","$SFTP_PASSWORD" "sftp://$HOST" -e "$LFTP_SETTINGS; cd '$OLD_DIR'; find . > remote-list.txt; bye"
-          remote=$(grep -v '/$' remote-list.txt | grep -vx '\.' | wc -l)
-          local_count=$(cd backup/WordPress_01 && find . -type f -o -type l | wc -l)
-          echo "files on Strato: $remote, files in backup: $local_count"
-          [ "$remote" -gt 0 ] && [ "$local_count" -ge "$remote" ] || { echo "::error::Backup is incomplete, nothing deleted"; exit 1; }
+          if grep -iE 'error|failed|denied|cannot' mirror.log | grep -v '^Transferring file'; then echo "::error::Errors during download, nothing deleted"; exit 1; fi
+          for f in wp-config.php wp-content wp-includes wp-admin index.php; do
+            [ -e "backup/WordPress_01/$f" ] || { echo "::error::$f missing from backup, nothing deleted"; exit 1; }
+          done
+          echo "files in backup: $(find backup -type f | wc -l)"
 
       # The repository is public, so the backup is encrypted (it holds wp-config.php with database passwords).
       - name: Encrypt the backup and test that it decrypts
