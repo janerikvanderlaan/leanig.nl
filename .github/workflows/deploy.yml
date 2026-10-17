@@ -19,7 +19,7 @@ jobs:
       SFTP_USER: ${{ secrets.STRATO_SFTP_USER }}
       SFTP_PASSWORD: ${{ secrets.STRATO_SFTP_PASSWORD }}
       CONTACT_EMAIL: ${{ secrets.CONTACT_EMAIL }}
-      LFTP_SETTINGS: set sftp:auto-confirm yes; set net:max-retries 2; set net:timeout 30; set net:reconnect-interval-base 5
+      LFTP_SETTINGS: set dns:order "inet inet6"; set sftp:auto-confirm yes; set net:max-retries 2; set net:timeout 30; set net:reconnect-interval-base 5
     steps:
       - uses: actions/checkout@v4
 
