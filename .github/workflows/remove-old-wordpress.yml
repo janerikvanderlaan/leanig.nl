@@ -54,7 +54,7 @@ jobs:
 
       - name: Check the backup is complete
         run: |
-          if grep -iE 'error|failed|denied|cannot' mirror.log | grep -v '^Transferring file'; then echo "::error::Errors during download, nothing deleted"; exit 1; fi
+          if grep -vE '^(Transferring file|Making directory) ' mirror.log | grep -iE 'error|failed|denied|cannot'; then echo "::error::Errors during download, nothing deleted"; exit 1; fi
           for f in wp-config.php wp-content wp-includes wp-admin index.php; do
             [ -e "backup/WordPress_01/$f" ] || { echo "::error::$f missing from backup, nothing deleted"; exit 1; }
           done
