@@ -8,6 +8,14 @@ on:
       confirm:
         description: 'Type DELETE to back up and then remove /WordPress_01'
         required: true
+      already_backed_up:
+        description: 'Skip the backup because an earlier run already stored one (wordpress-backup)'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  actions: read
 
 jobs:
   remove:
@@ -42,7 +50,16 @@ jobs:
 
       # lftp exits non-zero when any transfer fails, and the log is checked for errors too,
       # so a partial download stops the run before anything is deleted.
+      - name: Check an earlier backup is stored
+        if: ${{ inputs.already_backed_up }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          n=$(gh api "repos/$GITHUB_REPOSITORY/actions/artifacts?name=wordpress-backup" --jq '[.artifacts[] | select(.expired == false)] | length')
+          [ "$n" -gt 0 ] || { echo "::error::No stored wordpress-backup found, nothing deleted"; exit 1; }
+
       - name: Back up the WordPress folder
+        if: ${{ !inputs.already_backed_up }}
         timeout-minutes: 90
         run: |
           mkdir -p backup
@@ -53,6 +70,7 @@ jobs:
           du -sh backup
 
       - name: Check the backup is complete
+        if: ${{ !inputs.already_backed_up }}
         run: |
           if grep -vE '^(Transferring file|Making directory) ' mirror.log | grep -iE 'error|failed|denied|cannot'; then echo "::error::Errors during download, nothing deleted"; exit 1; fi
           for f in wp-config.php wp-content wp-includes wp-admin index.php; do
@@ -62,12 +80,14 @@ jobs:
 
       # The repository is public, so the backup is encrypted (it holds wp-config.php with database passwords).
       - name: Encrypt the backup and test that it decrypts
+        if: ${{ !inputs.already_backed_up }}
         run: |
           tar czf - backup | openssl enc -aes-256-cbc -pbkdf2 -pass env:SFTP_PASSWORD -out wordpress-backup.tar.gz.enc
           openssl enc -d -aes-256-cbc -pbkdf2 -pass env:SFTP_PASSWORD -in wordpress-backup.tar.gz.enc | tar tzf - | grep -q 'wp-config.php'
           ls -lh wordpress-backup.tar.gz.enc
 
       - name: Store the backup with this run
+        if: ${{ !inputs.already_backed_up }}
         uses: actions/upload-artifact@v4
         with:
           name: wordpress-backup
@@ -75,10 +95,20 @@ jobs:
           retention-days: 90
           if-no-files-found: error
 
+      # SFTP deletes one file at a time, so the big subfolders are removed in parallel first.
       - name: Delete the WordPress folder on Strato
-        timeout-minutes: 30
+        timeout-minutes: 120
         run: |
-          lftp -u "$SFTP_USER","$SFTP_PASSWORD" "sftp://$HOST" -e "$LFTP_SETTINGS; rm -r '$OLD_DIR'; cls -1 /; bye"
+          lftp_do() { lftp -u "$SFTP_USER","$SFTP_PASSWORD" "sftp://$HOST" -e "$LFTP_SETTINGS; $1; bye"; }
+          export -f lftp_do
+          for parent in wp-content/plugins wp-content/themes wp-content/uploads wp-content wp-includes wp-admin; do
+            lftp_do "cls -1 '$OLD_DIR/$parent/'" 2>/dev/null | sed 's|/$||' | grep -v '^$' > entries.txt || true
+            echo "$parent: $(wc -l < entries.txt) entries"
+            sed "s|^|$OLD_DIR/$parent/|; s|^$OLD_DIR/$parent/$OLD_DIR/|$OLD_DIR/|" entries.txt | xargs -r -P 8 -I{} bash -c 'lftp_do "rm -r -f \"{}\""'
+          done
+          lftp_do "rm -r -f '$OLD_DIR'"
+          lftp_do "cls -1 /" | tee root.txt
+          ! grep -q 'WordPress_01' root.txt || { echo "::error::WordPress_01 is still there"; exit 1; }
 
       - name: Check the live site still works
         run: curl -fsS https://leanig.nl/ | grep -q 'contact-form'
