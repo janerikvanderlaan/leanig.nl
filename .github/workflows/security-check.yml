@@ -1,0 +1,38 @@
+name: Security check
+
+# Read-only checks of the public website: HTTPS, security headers and files that
+# should not be reachable. Sends only ordinary web requests to leanig.nl.
+on:
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: HTTPS and redirects
+        run: |
+          for u in http://leanig.nl/ http://www.leanig.nl/ https://leanig.nl/ https://www.leanig.nl/; do
+            echo "== $u"; curl -s -o /dev/null -w "%{http_code} -> %{redirect_url}\n" --max-time 20 "$u"
+          done
+          echo "== certificate"
+          echo | openssl s_client -connect www.leanig.nl:443 -servername www.leanig.nl 2>/dev/null | openssl x509 -noout -subject -issuer -dates -ext subjectAltName
+          echo "== TLS versions"
+          for v in tls1 tls1_1 tls1_2 tls1_3; do printf "%s: " $v; echo | timeout 10 openssl s_client -$v -connect www.leanig.nl:443 -servername www.leanig.nl >/dev/null 2>&1 && echo accepted || echo refused; done
+
+      - name: Response headers
+        run: curl -sI --max-time 20 https://www.leanig.nl/
+
+      - name: Files that should not be reachable
+        run: |
+          for p in .htaccess .git/HEAD .env contact.php wp-login.php wp-config.php xmlrpc.php wp-admin/ WordPress_01/ WordPress_01/wp-config.php ../WordPress_01/ cgi-bin/ backup/ index.php phpinfo.php .user.ini; do
+            printf "%-28s " "/$p"; curl -s -o /dev/null -w "%{http_code} %{size_download}B\n" --max-time 20 "https://www.leanig.nl/$p"
+          done
+          echo "== old WordPress links"
+          for p in contact-formulier/ en/ en/agile-consultancy/; do printf "%-28s " "/$p"; curl -s -o /dev/null -w "%{http_code} -> %{redirect_url}\n" --max-time 20 "https://www.leanig.nl/$p"; done
+
+      - name: Contact form input handling
+        run: |
+          echo "== GET is refused"; curl -s -w " [%{http_code}]\n" --max-time 20 -H 'Accept: application/json' https://www.leanig.nl/contact.php
+          echo "== Invalid email is refused (no mail sent)"; curl -s -w " [%{http_code}]\n" --max-time 20 -H 'Accept: application/json' -d 'first=Test&last=Check&email=not-an-email%0ABcc:x@example.com' https://www.leanig.nl/contact.php
+          echo "== Bot honeypot is silently accepted (no mail sent)"; curl -s -w " [%{http_code}]\n" --max-time 20 -H 'Accept: application/json' -d 'first=Bot&last=Bot&email=bot@example.com&website=spam' https://www.leanig.nl/contact.php
