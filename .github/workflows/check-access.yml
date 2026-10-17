@@ -1,0 +1,32 @@
+name: Check Strato access
+
+# Logs in to Strato and lists the top folder. Reads only; changes nothing on the server.
+on:
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      HOST: ${{ vars.STRATO_SFTP_HOST || 'ssh.strato.de' }}
+      REMOTE_DIR: ${{ vars.STRATO_REMOTE_DIR || '/' }}
+      SFTP_USER: ${{ secrets.STRATO_SFTP_USER }}
+      SFTP_PASSWORD: ${{ secrets.STRATO_SFTP_PASSWORD }}
+      CONTACT_EMAIL: ${{ secrets.CONTACT_EMAIL }}
+      LFTP_SETTINGS: set sftp:auto-confirm yes; set net:max-retries 2; set net:timeout 30; set net:reconnect-interval-base 5
+    steps:
+      - name: Check the secrets are set
+        run: |
+          missing=0
+          [ -n "$SFTP_USER" ] || { echo "::error::The STRATO_SFTP_USER secret is missing or empty"; missing=1; }
+          [ -n "$SFTP_PASSWORD" ] || { echo "::error::The STRATO_SFTP_PASSWORD secret is missing or empty"; missing=1; }
+          [ -n "$CONTACT_EMAIL" ] || { echo "::error::The CONTACT_EMAIL secret is missing or empty"; missing=1; }
+          exit $missing
+
+      - name: Install lftp
+        run: sudo apt-get update -q && sudo apt-get install -y -q lftp
+
+      - name: Log in and list the web folder
+        run: |
+          lftp -u "$SFTP_USER","$SFTP_PASSWORD" "sftp://$HOST" -e "$LFTP_SETTINGS; cls -1 -s -h '$REMOTE_DIR'; du -hs '$REMOTE_DIR'; bye"
