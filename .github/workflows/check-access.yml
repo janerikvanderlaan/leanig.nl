@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     env:
-      HOST: ${{ vars.STRATO_SFTP_HOST || '57190899.swh.strato-hosting.eu' }}
+      HOST: ${{ vars.STRATO_SFTP_HOST || '57190899.ssh.w1.strato.hosting' }}
       REMOTE_DIR: ${{ vars.STRATO_REMOTE_DIR || '/' }}
       SFTP_USER: ${{ secrets.STRATO_SFTP_USER }}
       SFTP_PASSWORD: ${{ secrets.STRATO_SFTP_PASSWORD }}
