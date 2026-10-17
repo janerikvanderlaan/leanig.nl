@@ -1,0 +1,80 @@
+name: Remove old WordPress folder
+
+# One-off clean-up, started by hand. Backs up /WordPress_01 (encrypted), checks the
+# backup is complete and can be decrypted, and only then deletes the folder on Strato.
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type DELETE to back up and then remove /WordPress_01'
+        required: true
+
+jobs:
+  remove:
+    if: ${{ github.event.inputs.confirm == 'DELETE' }}
+    runs-on: ubuntu-latest
+    env:
+      HOST: ${{ vars.STRATO_SFTP_HOST || '57190899.ssh.w1.strato.hosting' }}
+      OLD_DIR: /WordPress_01
+      SFTP_USER: ${{ secrets.STRATO_SFTP_USER }}
+      SFTP_PASSWORD: ${{ secrets.STRATO_SFTP_PASSWORD }}
+      LFTP_SETTINGS: set sftp:auto-confirm yes; set net:max-retries 2; set net:timeout 30; set net:reconnect-interval-base 5
+    steps:
+      - name: Check the secrets are set
+        run: |
+          [ -n "$SFTP_USER" ] && [ -n "$SFTP_PASSWORD" ] || { echo "::error::Strato secrets missing"; exit 1; }
+
+      # Never delete the folder the live site is served from.
+      - name: Check leanig.nl is served by the new site
+        run: |
+          curl -fsS https://leanig.nl/ | grep -q 'contact-form' || { echo "::error::leanig.nl does not look like the new site"; exit 1; }
+          if curl -fsS -o /dev/null https://leanig.nl/wp-login.php; then echo "::error::leanig.nl still serves WordPress"; exit 1; fi
+
+      - name: Get an IPv6 connection
+        run: |
+          curl -fsSL https://pkg.cloudflareclient.com/pubkey.gpg | sudo gpg --yes --dearmor -o /usr/share/keyrings/cloudflare-warp-archive-keyring.gpg
+          echo "deb [signed-by=/usr/share/keyrings/cloudflare-warp-archive-keyring.gpg] https://pkg.cloudflareclient.com/ $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/cloudflare-client.list
+          sudo apt-get update -q && sudo apt-get install -y -q cloudflare-warp lftp
+          warp-cli --accept-tos registration new
+          warp-cli --accept-tos connect
+          for i in $(seq 1 20); do warp-cli --accept-tos status | grep -q Connected && break; sleep 2; done
+          warp-cli --accept-tos status
+
+      - name: Back up the WordPress folder
+        timeout-minutes: 90
+        run: |
+          mkdir -p backup
+          lftp -u "$SFTP_USER","$SFTP_PASSWORD" "sftp://$HOST" -e "$LFTP_SETTINGS; mirror --parallel=8 --verbose=1 '$OLD_DIR' backup/WordPress_01; bye"
+          du -sh backup
+
+      - name: Check the backup is complete
+        timeout-minutes: 15
+        run: |
+          lftp -u "$SFTP_USER","$SFTP_PASSWORD" "sftp://$HOST" -e "$LFTP_SETTINGS; cd '$OLD_DIR'; find . > remote-list.txt; bye"
+          remote=$(grep -v '/$' remote-list.txt | grep -vx '\.' | wc -l)
+          local_count=$(cd backup/WordPress_01 && find . -type f -o -type l | wc -l)
+          echo "files on Strato: $remote, files in backup: $local_count"
+          [ "$remote" -gt 0 ] && [ "$local_count" -ge "$remote" ] || { echo "::error::Backup is incomplete, nothing deleted"; exit 1; }
+
+      # The repository is public, so the backup is encrypted (it holds wp-config.php with database passwords).
+      - name: Encrypt the backup and test that it decrypts
+        run: |
+          tar czf - backup | openssl enc -aes-256-cbc -pbkdf2 -pass env:SFTP_PASSWORD -out wordpress-backup.tar.gz.enc
+          openssl enc -d -aes-256-cbc -pbkdf2 -pass env:SFTP_PASSWORD -in wordpress-backup.tar.gz.enc | tar tzf - | grep -q 'wp-config.php'
+          ls -lh wordpress-backup.tar.gz.enc
+
+      - name: Store the backup with this run
+        uses: actions/upload-artifact@v4
+        with:
+          name: wordpress-backup
+          path: wordpress-backup.tar.gz.enc
+          retention-days: 90
+          if-no-files-found: error
+
+      - name: Delete the WordPress folder on Strato
+        timeout-minutes: 30
+        run: |
+          lftp -u "$SFTP_USER","$SFTP_PASSWORD" "sftp://$HOST" -e "$LFTP_SETTINGS; rm -r '$OLD_DIR'; cls -1 /; bye"
+
+      - name: Check the live site still works
+        run: curl -fsS https://leanig.nl/ | grep -q 'contact-form'
