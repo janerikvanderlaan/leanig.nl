@@ -18,8 +18,14 @@ jobs:
       REMOTE_DIR: ${{ vars.STRATO_REMOTE_DIR || '/' }}
       SFTP_USER: ${{ secrets.STRATO_SFTP_USER }}
       SFTP_PASSWORD: ${{ secrets.STRATO_SFTP_PASSWORD }}
+      CONTACT_EMAIL: ${{ secrets.CONTACT_EMAIL }}
     steps:
       - uses: actions/checkout@v4
+
+      - name: Fill in the contact form address
+        run: |
+          if [ -z "$CONTACT_EMAIL" ]; then echo "::error::Add the CONTACT_EMAIL secret first"; exit 1; fi
+          sed -i "s|__CONTACT_EMAIL__|$CONTACT_EMAIL|" site/contact.php
 
       - name: Install lftp
         run: sudo apt-get update -q && sudo apt-get install -y -q lftp
@@ -29,11 +35,16 @@ jobs:
           mkdir -p backup
           lftp -u "$SFTP_USER","$SFTP_PASSWORD" "sftp://$HOST" -e "set sftp:auto-confirm yes; mirror --parallel=4 '$REMOTE_DIR' backup; bye"
 
+      # The repository is public, so the backup is encrypted with the SFTP password
+      # before it is stored (it can contain WordPress settings such as database passwords).
+      - name: Encrypt the backup
+        run: tar czf - backup | openssl enc -aes-256-cbc -pbkdf2 -pass env:SFTP_PASSWORD -out strato-backup.tar.gz.enc
+
       - name: Store the backup with this run
         uses: actions/upload-artifact@v4
         with:
           name: strato-backup-${{ github.run_number }}
-          path: backup
+          path: strato-backup.tar.gz.enc
           retention-days: 90
 
       - name: Upload the new site

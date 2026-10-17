@@ -1,0 +1,8 @@
+# Serve the new static homepage instead of the old WordPress index.php.
+DirectoryIndex index.html index.php
+
+# Send links to pages of the old WordPress site to the new page.
+RewriteEngine On
+RewriteRule ^contact-formulier/?$ /#contact [R=301,L,NE]
+RewriteRule ^en/contact-form-leanig/?$ /#contact [R=301,L,NE]
+RewriteRule ^en(/.*)?$ /#en [R=301,L,NE]
