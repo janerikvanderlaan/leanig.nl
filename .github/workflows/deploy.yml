@@ -1,0 +1,41 @@
+name: Deploy to Strato
+
+# Runs only when started by hand (Actions tab > Deploy to Strato > Run workflow),
+# so nothing goes live without an explicit go-ahead.
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type DEPLOY to upload the site to leanig.nl'
+        required: true
+
+jobs:
+  deploy:
+    if: ${{ github.event.inputs.confirm == 'DEPLOY' }}
+    runs-on: ubuntu-latest
+    env:
+      HOST: ${{ vars.STRATO_SFTP_HOST || 'ssh.strato.de' }}
+      REMOTE_DIR: ${{ vars.STRATO_REMOTE_DIR || '/' }}
+      SFTP_USER: ${{ secrets.STRATO_SFTP_USER }}
+      SFTP_PASSWORD: ${{ secrets.STRATO_SFTP_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install lftp
+        run: sudo apt-get update -q && sudo apt-get install -y -q lftp
+
+      - name: Back up what is on the server now
+        run: |
+          mkdir -p backup
+          lftp -u "$SFTP_USER","$SFTP_PASSWORD" "sftp://$HOST" -e "set sftp:auto-confirm yes; mirror --parallel=4 '$REMOTE_DIR' backup; bye"
+
+      - name: Store the backup with this run
+        uses: actions/upload-artifact@v4
+        with:
+          name: strato-backup-${{ github.run_number }}
+          path: backup
+          retention-days: 90
+
+      - name: Upload the new site
+        run: |
+          lftp -u "$SFTP_USER","$SFTP_PASSWORD" "sftp://$HOST" -e "set sftp:auto-confirm yes; mirror --reverse --verbose site '$REMOTE_DIR'; bye"
