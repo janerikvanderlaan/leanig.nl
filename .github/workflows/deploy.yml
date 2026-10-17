@@ -19,6 +19,7 @@ jobs:
       SFTP_USER: ${{ secrets.STRATO_SFTP_USER }}
       SFTP_PASSWORD: ${{ secrets.STRATO_SFTP_PASSWORD }}
       CONTACT_EMAIL: ${{ secrets.CONTACT_EMAIL }}
+      LFTP_SETTINGS: set sftp:auto-confirm yes; set net:max-retries 2; set net:timeout 30; set net:reconnect-interval-base 5
     steps:
       - uses: actions/checkout@v4
 
@@ -30,10 +31,18 @@ jobs:
       - name: Install lftp
         run: sudo apt-get update -q && sudo apt-get install -y -q lftp
 
+      # lftp retries a failed login forever by default, so fail fast and show what is on the server.
+      - name: Check the Strato login
+        timeout-minutes: 3
+        run: |
+          lftp -u "$SFTP_USER","$SFTP_PASSWORD" "sftp://$HOST" -e "$LFTP_SETTINGS; cls -1 '$REMOTE_DIR'; bye"
+
       - name: Back up what is on the server now
+        timeout-minutes: 45
         run: |
           mkdir -p backup
-          lftp -u "$SFTP_USER","$SFTP_PASSWORD" "sftp://$HOST" -e "set sftp:auto-confirm yes; mirror --parallel=4 '$REMOTE_DIR' backup; bye"
+          lftp -u "$SFTP_USER","$SFTP_PASSWORD" "sftp://$HOST" -e "$LFTP_SETTINGS; mirror --parallel=8 --verbose=1 '$REMOTE_DIR' backup; bye"
+          du -sh backup
 
       # The repository is public, so the backup is encrypted with the SFTP password
       # before it is stored (it can contain WordPress settings such as database passwords).
@@ -48,5 +57,6 @@ jobs:
           retention-days: 90
 
       - name: Upload the new site
+        timeout-minutes: 10
         run: |
-          lftp -u "$SFTP_USER","$SFTP_PASSWORD" "sftp://$HOST" -e "set sftp:auto-confirm yes; mirror --reverse --verbose site '$REMOTE_DIR'; bye"
+          lftp -u "$SFTP_USER","$SFTP_PASSWORD" "sftp://$HOST" -e "$LFTP_SETTINGS; mirror --reverse --verbose site '$REMOTE_DIR'; bye"
