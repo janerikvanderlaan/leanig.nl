@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       HOST: ${{ vars.STRATO_SFTP_HOST || '57190899.ssh.w1.strato.hosting' }}
-      REMOTE_DIR: ${{ vars.STRATO_REMOTE_DIR || '/' }}
+      REMOTE_DIR: ${{ vars.STRATO_REMOTE_DIR || '/leanig-site' }}
       SFTP_USER: ${{ secrets.STRATO_SFTP_USER }}
       SFTP_PASSWORD: ${{ secrets.STRATO_SFTP_PASSWORD }}
       CONTACT_EMAIL: ${{ secrets.CONTACT_EMAIL }}
@@ -61,8 +61,9 @@ jobs:
         timeout-minutes: 45
         run: |
           mkdir -p backup
-          lftp -u "$SFTP_USER","$SFTP_PASSWORD" "sftp://$HOST" -e "$LFTP_SETTINGS; mirror --parallel=8 --verbose=1 '$REMOTE_DIR' backup; bye"
+          lftp -u "$SFTP_USER","$SFTP_PASSWORD" "sftp://$HOST" -e "$LFTP_SETTINGS; mkdir -p -f '$REMOTE_DIR'; mirror --parallel=8 --verbose=1 '$REMOTE_DIR' backup; bye"
           du -sh backup
+          ls -A backup | head -1 >/dev/null; [ -n "$(ls -A backup)" ] || echo "nothing there yet" > backup/EMPTY.txt
 
       # The repository is public, so the backup is encrypted with the SFTP password
       # before it is stored (it can contain WordPress settings such as database passwords).
