@@ -28,6 +28,25 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     finish(false, 405);
 }
 
+// At most 5 messages per hour from one address, so nobody can flood the inbox.
+function tooMany($limit = 5, $window = 3600) {
+    $file = sys_get_temp_dir() . '/leanig-contact-' . md5($_SERVER['REMOTE_ADDR'] ?? '');
+    $now = time();
+    $times = array_filter(json_decode(@file_get_contents($file) ?: '[]', true) ?: [], function ($t) use ($now, $window) {
+        return $t > $now - $window;
+    });
+    if (count($times) >= $limit) {
+        return true;
+    }
+    $times[] = $now;
+    @file_put_contents($file, json_encode(array_values($times)), LOCK_EX);
+    return false;
+}
+
+if (tooMany()) {
+    finish(false, 429);
+}
+
 // Bots fill in the hidden "website" field; people never see it.
 if (clean($_POST['website'] ?? '', 200) !== '') {
     finish(true);
