@@ -14,7 +14,7 @@ jobs:
       SFTP_USER: ${{ secrets.STRATO_SFTP_USER }}
       SFTP_PASSWORD: ${{ secrets.STRATO_SFTP_PASSWORD }}
       CONTACT_EMAIL: ${{ secrets.CONTACT_EMAIL }}
-      LFTP_SETTINGS: set sftp:connect-program "ssh -a -x -4"; set sftp:auto-confirm yes; set net:max-retries 2; set net:timeout 30; set net:reconnect-interval-base 5
+      LFTP_SETTINGS: set sftp:auto-confirm yes; set net:max-retries 2; set net:timeout 30; set net:reconnect-interval-base 5
     steps:
       - name: Check the secrets are set
         run: |
@@ -23,6 +23,19 @@ jobs:
           [ -n "$SFTP_PASSWORD" ] || { echo "::error::The STRATO_SFTP_PASSWORD secret is missing or empty"; missing=1; }
           [ -n "$CONTACT_EMAIL" ] || { echo "::error::The CONTACT_EMAIL secret is missing or empty"; missing=1; }
           exit $missing
+
+      # GitHub's runners have no IPv6, and Strato only accepts SFTP over IPv6 for this host.
+      # Cloudflare WARP gives the runner an IPv6 route; the SFTP session itself stays end-to-end encrypted.
+      - name: Get an IPv6 connection
+        run: |
+          curl -fsSL https://pkg.cloudflareclient.com/pubkey.gpg | sudo gpg --yes --dearmor -o /usr/share/keyrings/cloudflare-warp-archive-keyring.gpg
+          echo "deb [signed-by=/usr/share/keyrings/cloudflare-warp-archive-keyring.gpg] https://pkg.cloudflareclient.com/ $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/cloudflare-client.list
+          sudo apt-get update -q && sudo apt-get install -y -q cloudflare-warp
+          warp-cli --accept-tos registration new
+          warp-cli --accept-tos connect
+          for i in $(seq 1 20); do warp-cli --accept-tos status | grep -q Connected && break; sleep 2; done
+          warp-cli --accept-tos status
+          curl -6 -s --max-time 10 https://ifconfig.co || echo "no IPv6 yet"
 
       - name: Install lftp
         run: sudo apt-get update -q && sudo apt-get install -y -q lftp
