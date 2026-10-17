@@ -40,6 +40,11 @@ jobs:
       - name: Install lftp
         run: sudo apt-get update -q && sudo apt-get install -y -q lftp
 
+      - name: Show the SSH handshake (diagnostic, no password sent)
+        continue-on-error: true
+        run: |
+          timeout 45 ssh -vv -o StrictHostKeyChecking=no -o BatchMode=yes -o ConnectTimeout=20 "$SFTP_USER@$HOST" exit 2>&1 | grep -v -i -E 'identity file|load_hostkeys|kex_input|expecting|SSH2_MSG' | tail -40 || true
+
       - name: Log in and list the web folder
         run: |
           getent ahosts "$HOST" | awk '{print $1}' | sort -u
