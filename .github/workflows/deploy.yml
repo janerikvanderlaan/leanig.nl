@@ -55,7 +55,7 @@ jobs:
       - name: Check the Strato login
         timeout-minutes: 3
         run: |
-          lftp -u "$SFTP_USER","$SFTP_PASSWORD" "sftp://$HOST" -e "$LFTP_SETTINGS; cls -1 '$REMOTE_DIR'; bye"
+          lftp -u "$SFTP_USER","$SFTP_PASSWORD" "sftp://$HOST" -e "$LFTP_SETTINGS; cls -1 /; bye"
 
       - name: Back up what is on the server now
         timeout-minutes: 45
