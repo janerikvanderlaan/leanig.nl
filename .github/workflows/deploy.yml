@@ -23,9 +23,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Check the secrets are set
+        run: |
+          missing=0
+          [ -n "$SFTP_USER" ] || { echo "::error::The STRATO_SFTP_USER secret is missing or empty"; missing=1; }
+          [ -n "$SFTP_PASSWORD" ] || { echo "::error::The STRATO_SFTP_PASSWORD secret is missing or empty"; missing=1; }
+          [ -n "$CONTACT_EMAIL" ] || { echo "::error::The CONTACT_EMAIL secret is missing or empty"; missing=1; }
+          exit $missing
+
       - name: Fill in the contact form address
         run: |
-          if [ -z "$CONTACT_EMAIL" ]; then echo "::error::Add the CONTACT_EMAIL secret first"; exit 1; fi
           sed -i "s|__CONTACT_EMAIL__|$CONTACT_EMAIL|" site/contact.php
 
       - name: Install lftp
