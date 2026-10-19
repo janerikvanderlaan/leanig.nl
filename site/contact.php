@@ -6,20 +6,22 @@
 const RECIPIENT = '__CONTACT_EMAIL__';
 const SENDER = 'website@leanig.nl';
 
+require __DIR__ . '/lib/captcha.php';
+
 function clean($value, $max) {
     $value = trim((string)($value ?? ''));
     $value = str_replace(["\r", "\0"], '', $value);
     return mb_substr($value, 0, $max);
 }
 
-function finish($ok, $status = 200) {
+function finish($ok, $status = 200, $error = null) {
     $wantsJson = strpos($_SERVER['HTTP_ACCEPT'] ?? '', 'application/json') !== false;
     if ($wantsJson) {
         http_response_code($status);
         header('Content-Type: application/json');
-        echo json_encode(['ok' => $ok]);
+        echo json_encode($error ? ['ok' => $ok, 'error' => $error] : ['ok' => $ok]);
     } else {
-        header('Location: /' . ($ok ? '?sent=1' : '') . '#contact', true, 303);
+        header('Location: /' . ($ok ? '?sent=1' : ($error ? "?$error=1" : '')) . '#contact', true, 303);
     }
     exit;
 }
@@ -50,6 +52,10 @@ if (tooMany()) {
 // Bots fill in the hidden "website" field; people never see it.
 if (clean($_POST['website'] ?? '', 200) !== '') {
     finish(true);
+}
+
+if (!captcha_check($_POST['captcha_token'] ?? '', $_POST['captcha'] ?? '')) {
+    finish(false, 422, 'captcha');
 }
 
 $first   = clean($_POST['first'] ?? '', 100);

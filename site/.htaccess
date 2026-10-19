@@ -23,6 +23,9 @@ RewriteRule ^en(/.*)?$ /#en [R=301,L,NE]
   Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'self'; object-src 'none'"
 </IfModule>
 
+# The captcha code is only used by contact.php and captcha.php, never opened directly.
+RewriteRule ^lib/ - [F,L]
+
 # Never serve hidden files such as .git or .env.
 <FilesMatch "^\.">
   Require all denied
