@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta property="og:title" content="Links | LEANIG Agile Consultancy">
+<meta property="og:description" content="Bronnen over agile, AI transformaties, Obeya, BVSSH, Team Topologies en OKR's.">
+<meta property="og:url" content="https://leanig.nl/links/">
+<link rel="canonical" href="https://leanig.nl/links/">
+<link rel="icon" href="../assets/leanig-icon.svg" type="image/svg+xml">
+<title>Links | LEANIG Agile Consultancy</title>
+<meta name="description" content="Bronnen die LEANIG aanraadt over agile, AI transformaties, Obeya, BVSSH, Team Topologies en OKR's.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Links page: same tokens, header and footer as the homepage; one band per theme with a grid of link cards. */
+
+:root {
+  --bg: #f2f5f6;
+  --surface: #ffffff;
+  --ink: #102a33;
+  --muted: #4b636c;
+  --line: #d5dfe3;
+  --deep: #0f3d4a;
+  --on-deep: #e8f1f3;
+  --on-deep-muted: #a9c3ca;
+  --accent: #f2c230;
+  --on-accent: #1d1a0c;
+  --teal: #1f7a86;
+  --teal-soft: #cfe6e9;
+  --wall: #e3eaec;
+  --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  --wrap: 76rem;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0c1a1f; --surface: #12252c; --ink: #e3eef1; --muted: #9db3ba; --line: #24414a;
+    --deep: #0a2f39; --on-deep: #e3eef1; --on-deep-muted: #8fb0b8; --accent: #f2c230; --on-accent: #1d1a0c;
+    --teal: #4fb0bc; --teal-soft: #173b44; --wall: #10242b;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0c1a1f; --surface: #12252c; --ink: #e3eef1; --muted: #9db3ba; --line: #24414a;
+  --deep: #0a2f39; --on-deep: #e3eef1; --on-deep-muted: #8fb0b8; --accent: #f2c230; --on-accent: #1d1a0c;
+  --teal: #4fb0bc; --teal-soft: #173b44; --wall: #10242b;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font: 400 1.0625rem/1.6 var(--body); }
+body.lang-en .nl, body:not(.lang-en) .en { display: none !important; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+
+.wrap {
+  max-width: var(--wrap); margin-inline: auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+h1, h2, h3 { font-family: var(--display); line-height: 1.08; text-wrap: balance; margin: 0; letter-spacing: -0.01em; }
+p { margin: 0; }
+a { color: inherit; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
+.label { font: 500 0.75rem/1 var(--mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--teal); }
+section { scroll-margin-top: 5rem; }
+.h2 { font-size: clamp(1.9rem, 3.6vw, 2.8rem); font-weight: 800; margin-block: 0.9rem 0.8rem; max-width: 40rem; }
+.intro { color: var(--muted); max-width: 38rem; font-size: 1.1rem; }
+
+/* SVG paint classes, all from tokens so drawings follow the theme */
+svg { display: block; width: 100%; height: auto; max-width: 100%; }
+.f-surface { fill: var(--surface); } .f-wall { fill: var(--wall); } .f-line { fill: var(--line); }
+.f-ink { fill: var(--ink); } .f-muted { fill: var(--muted); } .f-teal { fill: var(--teal); }
+.f-teal-soft { fill: var(--teal-soft); } .f-accent { fill: var(--accent); } .f-deep { fill: var(--deep); }
+.f-ondeep { fill: var(--on-deep); } .f-none { fill: none; }
+.s-line { stroke: var(--line); } .s-ink { stroke: var(--ink); } .s-teal { stroke: var(--teal); } .s-muted { stroke: var(--muted); }
+.s-accent { stroke: var(--accent); } .s-ondeep { stroke: var(--on-deep-muted); } .s-surface { stroke: var(--surface); }
+.t-mono { font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; }
+.t-note { font-family: var(--display); font-weight: 700; font-size: 15px; fill: var(--on-accent); }
+
+/* Header */
+header.site {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(8px); border-bottom: 1px solid var(--line);
+}
+header.site .wrap { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding-block: 0.7rem; }
+/* Logo B, dark version: light lettering on its own dark plate so it reads in both themes. */
+.logo { display: inline-flex; align-items: center; text-decoration: none; padding: 0.55rem 0.85rem; background: #0c1a1f; border-radius: 6px; }
+.logo img { display: block; height: 1.9rem; width: auto; }
+nav.main { display: flex; align-items: center; gap: 1.25rem; font-size: 0.95rem; }
+nav.main a { text-decoration: none; color: var(--muted); }
+nav.main a:hover { color: var(--ink); }
+.lang { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; padding: 2px; }
+.lang button {
+  font: 500 0.75rem/1 var(--mono); letter-spacing: 0.08em; border: 0; background: none; color: var(--muted);
+  padding: 0.45rem 0.6rem; border-radius: 999px; cursor: pointer;
+}
+.lang button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+@media (max-width: 700px) { nav.main a.hide-sm { display: none; } }
+
+/* Page intro */
+.page-head .wrap { padding-block: 4rem 2.5rem; }
+.page-head h1 { font-size: clamp(2.3rem, 5vw, 3.8rem); font-weight: 800; margin-block: 1rem 1rem; }
+.page-head h1 em { font-style: normal; background: linear-gradient(transparent 62%, var(--accent) 62%); padding-inline: 0.08em; }
+
+/* Link groups */
+.groups .wrap { display: grid; gap: 1rem; padding-bottom: 5rem; }
+.group { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 2.2fr); gap: 1rem 2.5rem; padding-block: 2rem; border-top: 1px solid var(--line); }
+.g-head { display: grid; gap: 0.6rem; align-content: start; }
+.g-head h2 { font-size: 1.5rem; font-weight: 800; }
+.links { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.links a {
+  display: grid; gap: 0.35rem; height: 100%; text-decoration: none; background: var(--surface);
+  border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 10px; padding: 1.1rem 1.25rem;
+}
+.links a:hover { border-color: var(--teal); border-left-color: var(--accent); transform: translateY(-1px); }
+.links .name { font: 700 1.1rem/1.25 var(--display); }
+.links .ext { color: var(--teal); }
+.links .desc { color: var(--muted); font-size: 0.95rem; }
+@media (max-width: 860px) { .group { grid-template-columns: 1fr; } }
+@media (max-width: 560px) { .links { grid-template-columns: 1fr; } }
+
+/* Closing call to action */
+.cta { background: var(--deep); color: var(--on-deep); }
+.cta .wrap { padding-block: 3.5rem; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1.5rem; }
+.cta h2 { font-size: clamp(1.6rem, 3vw, 2.2rem); font-weight: 800; max-width: 34rem; }
+.btn {
+  display: inline-flex; align-items: center; gap: 0.5rem; font: 600 1rem/1 var(--body); text-decoration: none;
+  padding: 0.95rem 1.35rem; border-radius: 6px; border: 2px solid var(--accent); background: var(--accent); color: var(--on-accent);
+}
+.btn:hover { transform: translateY(-1px); }
+
+footer { border-top: 1px solid var(--line); }
+footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.75rem; padding-block: 1.75rem; font-size: 0.875rem; color: var(--muted); }
+</style>
+
+</head>
+<body>
+<header class="site">
+  <div class="wrap">
+    <a class="logo" href="../"><img src="../assets/leanig-logo-b-dark.svg" alt="LEANIG" width="204" height="40"></a>
+    <nav class="main" aria-label="Hoofdmenu">
+      <a class="hide-sm" href="../#diensten"><span class="nl">Diensten</span><span class="en">Services</span></a>
+      <a class="hide-sm" href="../#toolkit">Toolkit</a>
+      <a class="hide-sm" href="./" aria-current="page">Links</a>
+      <a href="../#contact">Contact</a>
+      <div class="lang" role="group" aria-label="Taal / Language">
+        <button type="button" id="lang-nl" data-lang="nl" aria-pressed="true">NL</button>
+        <button type="button" id="lang-en" data-lang="en" aria-pressed="false">EN</button>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+  <section class="page-head" aria-labelledby="page-h">
+    <div class="wrap">
+      <span class="label">Links</span>
+      <h1 id="page-h"><span class="nl">Bronnen die we <em>graag delen</em></span><span class="en">Resources we <em>like to share</em></span></h1>
+      <p class="intro"><span class="nl">Een selectie van sites en boeken over agile, AI transformaties en de methoden uit onze toolkit.</span><span class="en">A selection of sites and books on agile, AI transformations and the methods in our toolkit.</span></p>
+    </div>
+  </section>
+
+  <div class="groups">
+   <div class="wrap">
+    <section class="group" aria-labelledby="g-agile">
+      <div class="g-head">
+        <span class="label">Agile</span>
+        <h2 id="g-agile"><span class="nl">Agile werken</span><span class="en">Agile working</span></h2>
+      </div>
+      <ul class="links">
+        <li><a href="https://agilemanifesto.org/" target="_blank" rel="noopener">
+          <span class="name">Agile Manifesto <span class="ext" aria-hidden="true">↗</span></span>
+          <span class="desc"><span class="nl">De vier waarden en twaalf principes waar het mee begon.</span><span class="en">The four values and twelve principles where it all started.</span></span>
+        </a></li>
+        <li><a href="https://agilemanifesto.org/iso/nl/manifesto.html" target="_blank" rel="noopener">
+          <span class="name">Agile Manifesto (NL) <span class="ext" aria-hidden="true">↗</span></span>
+          <span class="desc"><span class="nl">Het manifest in het Nederlands.</span><span class="en">The manifesto in Dutch.</span></span>
+        </a></li>
+        <li><a href="https://scrumguides.org/" target="_blank" rel="noopener">
+          <span class="name">Scrum Guide <span class="ext" aria-hidden="true">↗</span></span>
+          <span class="desc"><span class="nl">De officiële beschrijving van Scrum.</span><span class="en">The official definition of Scrum.</span></span>
+        </a></li>
+        <li><a href="https://kanbanguides.org/" target="_blank" rel="noopener">
+          <span class="name">Kanban Guide <span class="ext" aria-hidden="true">↗</span></span>
+          <span class="desc"><span class="nl">Kanban voor het verbeteren van de flow van werk.</span><span class="en">Kanban for improving the flow of work.</span></span>
+        </a></li>
+      </ul>
+    </section>
+    <section class="group" aria-labelledby="g-ai">
+      <div class="g-head">
+        <span class="label">AI</span>
+        <h2 id="g-ai"><span class="nl">AI transformatie</span><span class="en">AI transformation</span></h2>
+      </div>
+      <ul class="links">
+        <li><a href="https://teamtopologies.com/ai" target="_blank" rel="noopener">
+          <span class="name">The Organizational Foundation for AI ROI <span class="ext" aria-hidden="true">↗</span></span>
+          <span class="desc"><span class="nl">Executive report van Matthew Skelton (juli 2026) over rendement uit AI met Team Topologies.</span><span class="en">Executive report by Matthew Skelton (July 2026) on getting a return from AI with Team Topologies.</span></span>
+        </a></li>
+        <li><a href="https://dora.dev/" target="_blank" rel="noopener">
+          <span class="name">DORA <span class="ext" aria-hidden="true">↗</span></span>
+          <span class="desc"><span class="nl">Onderzoek naar softwarelevering, teamcultuur en de inzet van AI.</span><span class="en">Research on software delivery, team culture and the use of AI.</span></span>
+        </a></li>
+        <li><a href="https://artificialintelligenceact.eu/" target="_blank" rel="noopener">
+          <span class="name">EU AI Act <span class="ext" aria-hidden="true">↗</span></span>
+          <span class="desc"><span class="nl">De Europese AI-verordening, toegankelijk uitgelegd.</span><span class="en">The European AI regulation, explained in plain terms.</span></span>
+        </a></li>
+        <li><a href="https://www.nist.gov/itl/ai-risk-management-framework" target="_blank" rel="noopener">
+          <span class="name">NIST AI Risk Management Framework <span class="ext" aria-hidden="true">↗</span></span>
+          <span class="desc"><span class="nl">Een raamwerk om de risico's van AI te beheersen.</span><span class="en">A framework for managing the risks of AI.</span></span>
+        </a></li>
+      </ul>
+    </section>
+    <section class="group" aria-labelledby="g-obeya">
+      <div class="g-head">
+        <span class="label">Obeya</span>
+        <h2 id="g-obeya">Obeya</h2>
+      </div>
+      <ul class="links">
+        <li><a href="https://www.lean.org/lexicon-terms/obeya/" target="_blank" rel="noopener">
+          <span class="name">Lean Enterprise Institute: Obeya <span class="ext" aria-hidden="true">↗</span></span>
+          <span class="desc"><span class="nl">Wat een Obeya is en waar het vandaan komt.</span><span class="en">What an Obeya is and where it comes from.</span></span>
+        </a></li>
+        <li><a href="https://obeya-association.com/" target="_blank" rel="noopener">
+          <span class="name">Obeya Association <span class="ext" aria-hidden="true">↗</span></span>
+          <span class="desc"><span class="nl">Kennis en praktijkvoorbeelden over Obeya.</span><span class="en">Knowledge and practical examples of Obeya.</span></span>
+        </a></li>
+      </ul>
+    </section>
+    <section class="group" aria-labelledby="g-bvssh">
+      <div class="g-head">
+        <span class="label">BVSSH</span>
+        <h2 id="g-bvssh">Better Value Sooner Safer Happier</h2>
+      </div>
+      <ul class="links">
+        <li><a href="https://www.soonersaferhappier.com/" target="_blank" rel="noopener">
+          <span class="name">BVSSH <span class="ext" aria-hidden="true">↗</span></span>
+          <span class="desc"><span class="nl">De aanpak van Jon Smart voor betere uitkomsten.</span><span class="en">Jon Smart's approach to better outcomes.</span></span>
+        </a></li>
+        <li><a href="https://itrevolution.com/product/sooner-safer-happier/" target="_blank" rel="noopener">
+          <span class="name">Sooner Safer Happier <span class="nl">(boek)</span><span class="en">(book)</span> <span class="ext" aria-hidden="true">↗</span></span>
+          <span class="desc"><span class="nl">Het boek over patronen en antipatronen in transformaties.</span><span class="en">The book on patterns and antipatterns in transformations.</span></span>
+        </a></li>
+      </ul>
+    </section>
+    <section class="group" aria-labelledby="g-team-topologies">
+      <div class="g-head">
+        <span class="label">Team Topologies</span>
+        <h2 id="g-team-topologies">Team Topologies</h2>
+      </div>
+      <ul class="links">
+        <li><a href="https://teamtopologies.com/product-operating-model-accelerator" target="_blank" rel="noopener">
+          <span class="name">Team Topologies <span class="ext" aria-hidden="true">↗</span></span>
+          <span class="desc"><span class="nl">Het Product Operating Model Accelerator van Matthew Skelton en Manuel Pais.</span><span class="en">The Product Operating Model Accelerator by Matthew Skelton and Manuel Pais.</span></span>
+        </a></li>
+        <li><a href="https://teamtopologies.com/key-concepts" target="_blank" rel="noopener">
+          <span class="name">Key concepts <span class="ext" aria-hidden="true">↗</span></span>
+          <span class="desc"><span class="nl">Vier teamtypen en drie interactievormen op een rij.</span><span class="en">Four team types and three interaction modes at a glance.</span></span>
+        </a></li>
+      </ul>
+    </section>
+    <section class="group" aria-labelledby="g-okr">
+      <div class="g-head">
+        <span class="label">OKR</span>
+        <h2 id="g-okr">Objectives &amp; Key Results</h2>
+      </div>
+      <ul class="links">
+        <li><a href="https://www.whatmatters.com/" target="_blank" rel="noopener">
+          <span class="name">What Matters <span class="ext" aria-hidden="true">↗</span></span>
+          <span class="desc"><span class="nl">John Doerr over OKR's, met voorbeelden en hulpmiddelen.</span><span class="en">John Doerr on OKRs, with examples and tools.</span></span>
+        </a></li>
+      </ul>
+    </section>
+    <section class="group" aria-labelledby="g-mindset">
+      <div class="g-head">
+        <span class="label">Mindset</span>
+        <h2 id="g-mindset"><span class="nl">Mindset en cultuur</span><span class="en">Mindset and culture</span></h2>
+      </div>
+      <ul class="links">
+        <li><a href="https://amycedmondson.com/" target="_blank" rel="noopener">
+          <span class="name">Amy Edmondson <span class="ext" aria-hidden="true">↗</span></span>
+          <span class="desc"><span class="nl">Psychologische veiligheid als basis voor leren in teams.</span><span class="en">Psychological safety as the basis for team learning.</span></span>
+        </a></li>
+        <li><a href="https://www.lean.org/" target="_blank" rel="noopener">
+          <span class="name">Lean Enterprise Institute <span class="ext" aria-hidden="true">↗</span></span>
+          <span class="desc"><span class="nl">Lean denken en werken, van de basis tot leiderschap.</span><span class="en">Lean thinking and practice, from basics to leadership.</span></span>
+        </a></li>
+      </ul>
+    </section>
+   </div>
+  </div>
+
+  <section class="cta" aria-labelledby="cta-h">
+    <div class="wrap">
+      <h2 id="cta-h"><span class="nl">Wilt u weten hoe dit in uw organisatie werkt?</span><span class="en">Want to know how this works in your organisation?</span></h2>
+      <a class="btn" href="../#contact"><span class="nl">Plan een kennismaking</span><span class="en">Book an introduction</span></a>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>© 2026 Leanig BV · <a href="../">Home</a></span>
+    <span>Agile &amp; AI transformation · Obeya · BVSSH · Team Topologies · OKR</span>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var body = document.body;
+  function setLang(lang) {
+    body.classList.toggle('lang-en', lang === 'en');
+    document.documentElement.lang = lang;
+    document.querySelectorAll('.lang button').forEach(function (b) {
+      b.setAttribute('aria-pressed', String(b.dataset.lang === lang));
+    });
+    try { localStorage.setItem('leanig-lang', lang); } catch (e) {}
+  }
+  document.querySelectorAll('.lang button').forEach(function (b) {
+    b.addEventListener('click', function () { setLang(b.dataset.lang); });
+  });
+  var saved = null;
+  try { saved = localStorage.getItem('leanig-lang'); } catch (e) {}
+  setLang(location.hash === '#en' ? 'en' : (saved || 'nl'));
+})();
+</script>
+</body>
+
+</html>
