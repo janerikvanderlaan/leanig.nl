@@ -34,6 +34,8 @@ jobs:
       - name: Fill in the contact form address
         run: |
           sed -i "s|__CONTACT_EMAIL__|$CONTACT_EMAIL|" site/contact.php
+          # A new random captcha key on every deploy; it never leaves the server.
+          sed -i "s|__CAPTCHA_SECRET__|$(openssl rand -hex 32)|" site/lib/captcha.php
 
       # GitHub's runners have no IPv6, and Strato only accepts SFTP over IPv6 for this host.
       # Cloudflare WARP gives the runner an IPv6 route; the SFTP session itself stays end-to-end encrypted.
